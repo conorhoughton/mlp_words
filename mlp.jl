@@ -3,6 +3,7 @@ using Pkg;
 using Knet
 using Statistics
 
+include("utilities.jl")
 
 function predict(w,x)
     x = w[1]*x .+ w[2]
@@ -45,14 +46,14 @@ function accuracy(w, data)
 end
 
 function batch(data,batchSize,word_n)
-    batches_n=length(data)/batchSize
-    dataBatches=Vector{Tuple{Array{Float64},Array{Float64}}}
+    batches_n=floor(Int,length(data)/batchSize)
+    dataBatches=Vector{Tuple{Array{Float64},Array{Float64}}}()
     for i in 0:batches_n-1
         x=zeros(Int8,(word_n,batchSize))
         y=zeros(Int8,(word_n,batchSize))
         for j in 1:batchSize
-            x[data[1][i*batchSize+j] ,j]=1
-            y[data[2][i*batchSize+j] ,j]=1
+            x[data[i*batchSize+j][1] ,j]=1
+            y[data[i*batchSize+j][2] ,j]=1
         end
         push!(dataBatches,(x,y))
     end
@@ -61,9 +62,10 @@ end
 
 
 include("tokenize.jl")
+#fileName="the_snowball_effect.txt"
 fileName="middlemarch.txt"
 
-word_n=1000::Int64
+word_n=500::Int64
 
 allWords=get_word_list(fileName,word_n)
 data=getData(fileName,allWords)
@@ -77,18 +79,19 @@ middle_n=2
 
 w=map(Array{Float32}, [ 0.1*randn(middle_n,word_n), zeros(middle_n,1), 0.1*randn(word_n,middle_n), zeros(word_n,1) ])
 
-xVector=zeros(Int64,word_n)
-yVector=zeros(Int65,word_n)
-
-println(accuracy(w,data_batches))
+println(accuracy(w,dataBatches))
 
 lr=0.5
 train=makeTrain(lr)
 
 println(gpu())
 
-for i=1:10
+for i=1:100
     train(w, dataBatches)
-    println(i," ",accuracy(w,dataBatches))
+#    println(i," ",accuracy(w,dataBatches))
 end
 
+for (i,word) in enumerate(allWords)
+    print(word)
+    printVector(w[1][:,i],"\n")
+end
