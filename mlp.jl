@@ -59,16 +59,20 @@ end
 
 function batch(data,batchSize,word_n,aType)
     batches_n=floor(Int,length(data)/batchSize)
-    dataBatches=aType{Tuple{aType,aType},1}()
+    dataBatches=Array{Tuple{aType,aType},1}()
     for i in 0:batches_n-1
-        x=aType(zeros(Float64,(word_n,batchSize)))
-        y=aType(zeros(Float64,(word_n,batchSize)))
+        x=zeros(Float64,(word_n,batchSize))
+        y=zeros(Float64,(word_n,batchSize))
         for j in 1:batchSize
             x[data[i*batchSize+j][1] ,j]=1.0
             y[data[i*batchSize+j][2] ,j]=1.0
         end
         push!(dataBatches,(x,y))
     end
+    if aType!=Array{Float64}
+        dataBatches=KnetArray(dataBatches)
+    end
+    
     dataBatches
 end
 
@@ -85,14 +89,16 @@ allWords=get_word_list(fileName,word_n)
 data=getData(fileName,allWords)
 
 
-batchSize=100
-dataBatches=batch(data,batchSize,word_n)
-
-middle_n=2
 
 aType=Array{Float64}
 if gpu()>=0
     aType=KnetArray{Float64}
+end
+
+batchSize=100
+dataBatches=batch(data,batchSize,word_n,aType)
+
+middle_n=2
 
 w=map(aType, [ 0.1*randn(middle_n,word_n), zeros(middle_n,1), 0.1*randn(word_n,middle_n), zeros(word_n,1) ])
 
