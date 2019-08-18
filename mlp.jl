@@ -1,5 +1,5 @@
 
-using Pkg;
+
 using Knet
 using Statistics
 
@@ -57,15 +57,15 @@ function accuracy(w, data)
     return ncorrect/ninstance
 end
 
-function batch(data,batchSize,word_n)
+function batch(data,batchSize,word_n,aType)
     batches_n=floor(Int,length(data)/batchSize)
-    dataBatches=Vector{Tuple{Array{Float64},Array{Float64}}}()
+    dataBatches=aType{Tuple{aType,aType},1}()
     for i in 0:batches_n-1
-        x=zeros(Int8,(word_n,batchSize))
-        y=zeros(Int8,(word_n,batchSize))
+        x=aType(zeros(Float64,(word_n,batchSize)))
+        y=aType(zeros(Float64,(word_n,batchSize)))
         for j in 1:batchSize
-            x[data[i*batchSize+j][1] ,j]=1
-            y[data[i*batchSize+j][2] ,j]=1
+            x[data[i*batchSize+j][1] ,j]=1.0
+            y[data[i*batchSize+j][2] ,j]=1.0
         end
         push!(dataBatches,(x,y))
     end
@@ -90,8 +90,11 @@ dataBatches=batch(data,batchSize,word_n)
 
 middle_n=2
 
+aType=Array{Float64}
+if gpu()>=0
+    aType=KnetArray{Float64}
 
-w=map(Array{Float32}, [ 0.1*randn(middle_n,word_n), zeros(middle_n,1), 0.1*randn(word_n,middle_n), zeros(word_n,1) ])
+w=map(aType, [ 0.1*randn(middle_n,word_n), zeros(middle_n,1), 0.1*randn(word_n,middle_n), zeros(word_n,1) ])
 
 
 lr=0.5
