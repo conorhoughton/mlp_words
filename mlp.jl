@@ -12,13 +12,25 @@ end
 
 
 
-function loss(w,x,label)
+function log_loss(w,x,label)
 
     y = predict(w,x)
     sum(label.*(-y.+ log.(sum(exp.(y),dims=1))))/size(y,2)
 
 end
 
+
+function square_loss(w,x,label)
+
+    y = predict(w,x)
+    sum((y-label).*(y-label))/size(y,2)
+
+end
+
+function loss(w,x,label)
+#    square_loss(w,x,label)
+    log_loss(w,x,label)
+end
 
 
 lossgradient = grad(loss)
@@ -64,6 +76,8 @@ end
 include("tokenize.jl")
 #fileName="the_snowball_effect.txt"
 fileName="middlemarch.txt"
+#fileName="all_camp.txt"
+#fileName="some_old_million.txt"
 
 word_n=500::Int64
 
@@ -79,14 +93,13 @@ middle_n=2
 
 w=map(Array{Float32}, [ 0.1*randn(middle_n,word_n), zeros(middle_n,1), 0.1*randn(word_n,middle_n), zeros(word_n,1) ])
 
-println(accuracy(w,dataBatches))
 
 lr=0.5
 train=makeTrain(lr)
 
-println(gpu())
 
-for i=1:100
+
+for i=1:2000
     train(w, dataBatches)
 #    println(i," ",accuracy(w,dataBatches))
 end
